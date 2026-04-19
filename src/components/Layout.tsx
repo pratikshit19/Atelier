@@ -7,7 +7,6 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
-  User,
   Menu,
   X,
   Calendar
@@ -35,7 +34,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = useLocation();
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleSignOut = async () => {
     await signOut();

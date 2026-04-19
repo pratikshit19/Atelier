@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card, cn } from '../components/ui';
 import { 
   Plus, 
   Search, 
-  Filter, 
   Image as ImageIcon, 
   Loader2, 
   Trash2,
@@ -84,7 +83,7 @@ export const ClosetPage = () => {
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('clothing-items')
         .upload(filePath, newItem.image, {
           cacheControl: '3600',
@@ -127,7 +126,7 @@ export const ClosetPage = () => {
     }
   };
 
-  const deleteItem = async (id: string, imageUrl: string) => {
+  const deleteItem = async (id: string) => {
     if (!confirm('Are you sure you want to remove this item?')) return;
 
     try {
@@ -229,7 +228,7 @@ export const ClosetPage = () => {
                 )}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button 
-                    onClick={() => deleteItem(item.id, item.image_url)}
+                    onClick={() => deleteItem(item.id)}
                     className="w-10 h-10 rounded-full bg-destructive text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
                   >
                     <Trash2 size={18} />

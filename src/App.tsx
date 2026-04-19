@@ -9,7 +9,7 @@ import { OutfitsPage } from './pages/OutfitsPage';
 import { PlannerPage } from './pages/PlannerPage';
 import { Layout } from './components/Layout';
 import { Toaster } from 'react-hot-toast';
-import { Shirt, Sparkles, Layers, Sun as SunIcon, Cloud as CloudIcon } from 'lucide-react';
+import { Sparkles, Shirt } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -109,7 +109,11 @@ const Dashboard = () => {
         
         <div className="p-4 rounded-2xl bg-secondary/20 border border-white/5 flex items-center gap-4 min-w-[200px]">
           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-            {weather.icon === 'Sun' ? <SunIcon size={20} /> : <CloudIcon size={20} />}
+            {weather.icon === 'Sun' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19x3.5a3.5 0 0 1-3.5-3.5c0-1.2.6-2.3 1.7-3C15.1 9.8 15.1 7 13.5 5.5s-4.3-1.6-6 0C5.9 7 5.9 9.8 7.5 12.5c-1.1.7-1.7 1.8-1.7 3 0 1.9 1.6 3.5 3.5 3.5h8.2"/></svg>
+            )}
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{weather.city}</p>
@@ -120,10 +124,10 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {[
-          { label: 'Total Value', value: `$${stats.totalValue.toLocaleString()}`, sub: 'Value', icon: Shirt },
-          { label: 'Avg. CPW', value: `$${stats.avgCPW.toFixed(2)}`, sub: 'CPW', icon: Sparkles },
-          { label: 'Active Items', value: stats.totalItems, sub: 'Items', icon: Layers },
-          { label: 'Top ROI', value: stats.topROIItem?.name || 'N/A', sub: stats.topROIItem ? `$${stats.topROIItem.cpw.toFixed(2)}` : 'No data', icon: Sparkles }
+          { label: 'Total Value', value: `$${stats.totalValue.toLocaleString()}`, sub: 'Value' },
+          { label: 'Avg. CPW', value: `$${stats.avgCPW.toFixed(2)}`, sub: 'CPW' },
+          { label: 'Active Items', value: stats.totalItems, sub: 'Items' },
+          { label: 'Top ROI', value: stats.topROIItem?.name || 'N/A', sub: stats.topROIItem ? `$${stats.topROIItem.cpw.toFixed(2)}` : 'No data' }
         ].map((stat, i) => (
           <div 
             key={i}
@@ -145,7 +149,7 @@ const Dashboard = () => {
             </h2>
           </div>
           <div className="space-y-4">
-            {stats.mostWorn.length > 0 ? stats.mostWorn.map((item, i) => (
+            {stats.mostWorn.length > 0 ? stats.mostWorn.map((item) => (
               <div key={item.id} className="flex items-center gap-4 p-3 rounded-2xl bg-black/20 border border-white/5">
                 <div className="w-12 h-12 rounded-xl overflow-hidden bg-secondary">
                   {item.image_url ? (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Input } from '../components/ui';
-import { Shirt, Mail, Lock, Loader2, Eye } from 'lucide-react';
+import { Mail, Lock, Loader2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const LoginPage = () => {
@@ -15,7 +15,7 @@ export const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
+
     if (error) {
       toast.error(error.message);
     } else {
@@ -87,7 +87,7 @@ export const LoginPage = () => {
             </Link>
           </div>
         </div>
-        
+
         <p className="text-center text-xs text-muted-foreground/50 tracking-wide">
           Smart wardrobe management powered by AI
         </p>
@@ -105,12 +105,12 @@ export const SignupPage = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ 
-      email, 
+    const { error } = await supabase.auth.signUp({
+      email,
       password,
       options: { emailRedirectTo: window.location.origin }
     });
-    
+
     if (error) {
       toast.error(error.message);
     } else {
@@ -179,7 +179,7 @@ export const SignupPage = () => {
             </Link>
           </div>
         </div>
-        
+
         <p className="text-center text-xs text-muted-foreground/50 tracking-wide">
           Start building your digital closet today
         </p>

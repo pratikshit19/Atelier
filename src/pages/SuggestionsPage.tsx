@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, cn } from '../components/ui';
-import { Sparkles, RefreshCw, Heart, Loader2, ChevronRight } from 'lucide-react';
+import { Button, cn } from '../components/ui';
+import { Sparkles, RefreshCw, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Item {
@@ -56,20 +56,20 @@ export const SuggestionsPage = () => {
       // Generate a few random combinations
       const combos: Outfit[] = [];
       const numToGenerate = Math.min(5, tops.length * bottoms.length * shoes.length);
-      
+
       const usedIndices = new Set<string>();
 
       while (combos.length < numToGenerate) {
         const t = tops[Math.floor(Math.random() * tops.length)];
         const b = bottoms[Math.floor(Math.random() * bottoms.length)];
         const s = shoes[Math.floor(Math.random() * shoes.length)];
-        
+
         const key = `${t.id}-${b.id}-${s.id}`;
         if (!usedIndices.has(key)) {
           combos.push({ top: t, bottom: b, shoes: s });
           usedIndices.add(key);
         }
-        
+
         // Safety break
         if (usedIndices.size >= tops.length * bottoms.length * shoes.length) break;
       }
@@ -107,10 +107,10 @@ export const SuggestionsPage = () => {
       // 1. Create Outfit
       const { data: outfitData, error: outfitError } = await supabase
         .from('outfits')
-        .insert([{ 
-          user_id: user.id, 
+        .insert([{
+          user_id: user.id,
           name: `Combo ${new Date().toLocaleDateString()}`,
-          is_favorite: true 
+          is_favorite: true
         }])
         .select()
         .single();
@@ -176,14 +176,14 @@ export const SuggestionsPage = () => {
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-primary">Variation {idx + 1}</span>
                 <div className="flex items-center gap-6">
-                  <button 
+                  <button
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-colors inline-flex items-center gap-2"
                     onClick={() => logWear(outfit)}
                   >
                     <RefreshCw size={12} />
                     Wear Today
                   </button>
-                  <button 
+                  <button
                     className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2"
                     onClick={() => saveOutfit(outfit)}
                   >
@@ -195,8 +195,8 @@ export const SuggestionsPage = () => {
 
               <div className="flex -space-x-20 hover:-space-x-10 transition-all duration-700 py-10 justify-center">
                 {[outfit.top, outfit.bottom, outfit.shoes].map((item, i) => (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     className="w-48 h-64 bg-muted rounded-[2rem] overflow-hidden border-4 border-[#18181b] shadow-2xl relative transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2"
                     style={{ zIndex: 10 - i, transform: `rotate(${(i - 1) * 1.5}deg)` }}
                   >
@@ -214,17 +214,4 @@ export const SuggestionsPage = () => {
     </div>
   );
 };
-
-const SuggestionItem = ({ item, label }: { item: Item; label: string }) => (
-  <div className="flex items-center gap-6 group/item">
-    <div className="w-20 h-24 rounded-xl overflow-hidden border border-white/5 bg-[#020617] flex-shrink-0">
-      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">{label}</p>
-      <h4 className="text-base font-medium truncate">{item.name}</h4>
-      <p className="text-xs text-muted-foreground mt-1">{item.color || 'Neutral'}</p>
-    </div>
-  </div>
-);
 
