@@ -35,7 +35,7 @@ export const LoginPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">Atelier</h1>
         </div>
 
-        <div className="p-8 rounded-2xl bg-card border border-white/[0.05] shadow-2xl space-y-8">
+        <div className="p-8 rounded-[2rem] bg-card border border-white/[0.05] shadow-2xl space-y-8">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Welcome back</h2>
             <p className="text-sm text-muted-foreground">Sign in to your Atelier account</p>

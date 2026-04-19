@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, cn } from '../components/ui';
+import { Button, Card, Input, cn } from '../components/ui';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Sparkles, Shirt } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ interface PlannedOutfit {
   date: string;
   outfit_id: string;
   outfit_name: string;
+  event_name?: string;
   items: any[];
 }
 
@@ -20,6 +21,7 @@ export const PlannerPage = () => {
   const [savedOutfits, setSavedOutfits] = useState<any[]>([]);
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [eventName, setEventName] = useState('');
   const [loading, setLoading] = useState(true);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOutfitForDetail, setSelectedOutfitForDetail] = useState<PlannedOutfit | null>(null);
@@ -83,7 +85,8 @@ export const PlannerPage = () => {
         user_id: user.id,
         item_id: oi.items.id,
         outfit_id: outfitId,
-        worn_at: `${selectedDate}T12:00:00Z`
+        worn_at: `${selectedDate}T12:00:00Z`,
+        event_name: eventName
       }));
 
       const { error } = await supabase.from('wear_logs').insert(itemsToLog);
@@ -109,6 +112,7 @@ export const PlannerPage = () => {
           id,
           worn_at,
           outfit_id,
+          event_name,
           outfits (
             name,
             outfit_items (
@@ -130,6 +134,7 @@ export const PlannerPage = () => {
             id: log.id,
             date,
             outfit_id: log.outfit_id,
+            event_name: (log as any).event_name,
             outfit_name: (Array.isArray(log.outfits) ? log.outfits[0]?.name : (log.outfits as any)?.name) || 'Untitled Look',
             items: (Array.isArray(log.outfits) ? log.outfits[0]?.outfit_items : (log.outfits as any)?.outfit_items)?.map((oi: any) => oi.items) || []
           };
@@ -281,8 +286,33 @@ export const PlannerPage = () => {
             <CalendarIcon className="text-primary" size={20} />
             <h3 className="text-lg font-bold uppercase tracking-widest text-[10px]">Upcoming Events</h3>
           </div>
-          <div className="flex items-center justify-center py-8 text-muted-foreground text-sm italic">
-            No specific events scheduled for this month.
+          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {plannedOutfits.filter(o => o.event_name).length > 0 ? (
+              plannedOutfits
+                .filter(o => o.event_name)
+                .sort((a, b) => a.date.localeCompare(b.date))
+                .map((event, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 group hover:border-primary/30 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={event.items[0]?.image_url} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">{event.event_name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                      </div>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Sparkles size={14} className="text-primary" />
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <Card className="p-6 md:p-10 flex flex-col items-center justify-center min-h-[400px] rounded-[1.25rem] border-white/5 bg-card relative overflow-hidden group">
+                <p>No specific events scheduled.</p>
+                <p className="text-[10px] uppercase tracking-widest non-italic opacity-50">Tag an outfit with an event name to see it here</p>
+              </Card>
+            )}
           </div>
         </Card>
       </div>
@@ -299,14 +329,24 @@ export const PlannerPage = () => {
             </button>
             
             <h2 className="text-2xl font-bold mb-2">Select Outfit</h2>
-            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-8">Scheduling for {selectedDate}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-6">Scheduling for {selectedDate}</p>
             
+            <div className="space-y-2 mb-6">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Occasion / Event</label>
+              <Input 
+                placeholder="e.g. Wedding, Business Meeting, Date Night..."
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                className="bg-black/20 border-white/5 h-12 text-white"
+              />
+            </div>
+
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {savedOutfits.length > 0 ? savedOutfits.map(outfit => (
                 <button
                   key={outfit.id}
                   onClick={() => scheduleOutfit(outfit.id)}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary/10 border border-white/5 hover:border-primary/50 transition-all group text-left"
+                  className="w-full flex items-center gap-4 p-4 rounded-[1.25rem] bg-secondary/10 border border-white/5 hover:border-primary/50 transition-all group text-left"
                 >
                   <div className="flex -space-x-3">
                     {outfit.outfit_items.slice(0, 3).map((oi: any, i: number) => (
@@ -355,7 +395,7 @@ export const PlannerPage = () => {
             
             <div className="grid grid-cols-1 gap-6 mb-8">
               {selectedOutfitForDetail.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-6 p-4 rounded-2xl bg-secondary/10 border border-white/5">
+                <div key={i} className="flex items-center gap-6 p-4 rounded-[1.25rem] bg-secondary/10 border border-white/5">
                   <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-lg">
                     <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                   </div>

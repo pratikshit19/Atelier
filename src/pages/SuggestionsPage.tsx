@@ -172,7 +172,7 @@ export const SuggestionsPage = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {combinations.map((outfit, idx) => (
-            <div key={idx} className="p-8 rounded-2xl bg-card border border-white/5 space-y-6 hover:border-primary/30 transition-all duration-300">
+            <div key={idx} className="p-8 rounded-[1.25rem] bg-card border border-white/5 space-y-6 hover:border-primary/30 transition-all duration-300">
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-primary">Variation {idx + 1}</span>
                 <div className="flex items-center gap-6">

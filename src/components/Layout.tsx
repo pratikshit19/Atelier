@@ -5,6 +5,7 @@ import {
   Shirt,
   Sparkles,
   Layers,
+  Palette,
   LayoutDashboard,
   LogOut,
   Calendar
@@ -40,6 +41,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/closet', icon: Shirt, label: 'Your Closet' },
+    { to: '/canvas', icon: Palette, label: 'Outfit Studio' },
     { to: '/suggestions', icon: Sparkles, label: 'Smart Combos' },
     { to: '/outfits', icon: Layers, label: 'Saved Outfits' },
     { to: '/planner', icon: Calendar, label: 'Planner' },

@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, Card, cn } from '../components/ui';
-import { 
-  Plus, 
-  Search, 
-  Image as ImageIcon, 
-  Loader2, 
+import { removeBackground } from '@imgly/background-removal';
+import * as tf from '@tensorflow/tfjs';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import {
+  Plus,
+  Search,
+  Image as ImageIcon,
+  Loader2,
   Trash2,
   X,
   Sparkles
@@ -72,20 +75,131 @@ export const ClosetPage = () => {
     }
   };
 
+  const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
+
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        await tf.ready();
+        modelRef.current = await cocoSsd.load();
+        console.log("AI Model Loaded");
+      } catch (err) {
+        console.error("Failed to load AI model:", err);
+      }
+    };
+    loadModel();
+  }, []);
+
+  const smartCrop = async (imageBlob: Blob, category: string): Promise<Blob> => {
+    const img = new Image();
+    const url = URL.createObjectURL(imageBlob);
+    
+    return new Promise((resolve, reject) => {
+      img.onload = async () => {
+        try {
+          const model = modelRef.current || await cocoSsd.load();
+          const predictions = await model.detect(img);
+          const person = predictions.find(p => p.class === 'person');
+          
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error("Could not get canvas context");
+
+          let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+          if (person) {
+            const [px, py, pw, ph] = person.bbox;
+            
+            if (category === 'Tops' || category === 'Outerwear') {
+              sx = px + (pw * 0.1); 
+              sy = py + (ph * 0.15); 
+              sw = pw * 0.8;        
+              sh = ph * 0.55;       
+            } else if (category === 'Bottoms') {
+              sx = px + (pw * 0.05);
+              sy = py + (ph * 0.4); 
+              sw = pw * 0.9;
+              sh = ph * 0.6;        
+            } else {
+              sx = px; sy = py; sw = pw; sh = ph;
+            }
+
+            sx = Math.max(0, sx); sy = Math.max(0, sy);
+            sw = Math.min(img.width - sx, sw);
+            sh = Math.min(img.height - sy, sh);
+          }
+
+          canvas.width = sw + 100; // Add padding for shadow
+          canvas.height = sh + 100;
+          ctx.filter = 'brightness(1.05) contrast(1.1)'; // Stock photo pop
+          
+          // Draw with shadow
+          ctx.shadowColor = 'rgba(0,0,0,0.2)';
+          ctx.shadowBlur = 30;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 15;
+          
+          ctx.drawImage(img, sx, sy, sw, sh, 50, 40, sw, sh);
+
+          // GHOST MANNEQUIN EFFECT: Fade out the neck/arms
+          ctx.globalCompositeOperation = 'destination-out';
+          
+          // Fade neck
+          const neckGrad = ctx.createLinearGradient(0, 40, 0, 100);
+          neckGrad.addColorStop(0, 'rgba(0,0,0,1)');
+          neckGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = neckGrad;
+          ctx.fillRect(0, 0, canvas.width, 100);
+
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Canvas toBlob failed"));
+          }, 'image/png');
+        } catch (err) {
+          reject(err);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItem.image || !user) return;
 
     setUploading(true);
     try {
+      let fileToUpload = newItem.image;
+
+      // AI Background Removal & Smart Extraction
+      if (newItem.removeBackground) {
+        toast.loading('AI is extracting your item...', { id: 'ai-processing' });
+        try {
+          // Stage 1: Remove Background
+          const noBgBlob = await removeBackground(newItem.image);
+          
+          // Stage 2: Smart Category-Aware Crop
+          const croppedBlob = await smartCrop(noBgBlob, newItem.category);
+          
+          fileToUpload = new File([croppedBlob], newItem.image.name.replace(/\.[^/.]+$/, "") + ".png", { type: 'image/png' });
+          toast.success('Item extracted!', { id: 'ai-processing' });
+        } catch (err) {
+          console.error("AI Extraction Error:", err);
+          toast.error('AI extraction failed, using original image.', { id: 'ai-processing' });
+        }
+      }
+
       // 1. Upload image to Storage
-      const fileExt = newItem.image.name.split('.').pop();
+      const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('clothing-items')
-        .upload(filePath, newItem.image, {
+        .upload(filePath, fileToUpload, {
           cacheControl: '3600',
           upsert: false
         });
@@ -148,8 +262,8 @@ export const ClosetPage = () => {
   };
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || 
-                          item.category.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.category.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
@@ -170,8 +284,8 @@ export const ClosetPage = () => {
       <div className="flex flex-col md:flex-row gap-6 pt-4 border-t border-border/40">
         <div className="relative flex-1">
           <Search className="absolute left-0 top-3 w-4 h-4 text-muted-foreground" />
-          <input 
-            placeholder="Search collection..." 
+          <input
+            placeholder="Search collection..."
             className="pl-8 h-10 w-full bg-transparent border-b border-border focus:border-primary outline-none text-sm transition-colors"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -179,13 +293,13 @@ export const ClosetPage = () => {
         </div>
         <div className="flex gap-4 overflow-x-auto">
           {['All', ...CATEGORIES].map(cat => (
-            <button 
+            <button
               key={cat}
               onClick={() => setSelectedCategory(cat === 'All' ? null : cat)}
               className={cn(
                 "text-xs uppercase tracking-widest pb-1 border-b-2 transition-all",
                 (selectedCategory === cat || (cat === 'All' && selectedCategory === null))
-                  ? "border-primary text-primary" 
+                  ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
@@ -212,14 +326,14 @@ export const ClosetPage = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filteredItems.map(item => (
             <div key={item.id} className="group relative">
-              <div className="aspect-square rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-card border border-white/5 relative shadow-xl">
-                <img 
-                  src={item.image_url} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+              <div className="aspect-[3/4] rounded-xl md:rounded-2xl overflow-hidden bg-card border border-white/5 relative shadow-xl">
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 {item.is_wishlist && (
                   <div className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
@@ -227,7 +341,7 @@ export const ClosetPage = () => {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button 
+                  <button
                     onClick={() => deleteItem(item.id)}
                     className="w-10 h-10 rounded-full bg-destructive text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
                   >
@@ -248,28 +362,28 @@ export const ClosetPage = () => {
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
           <Card className="w-full max-w-lg p-6 relative shadow-2xl border-primary/20">
-            <button 
+            <button
               onClick={() => setIsUploadModalOpen(false)}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
             >
               <X size={20} />
             </button>
-            
+
             <h2 className="text-2xl font-bold mb-6">Add New Item</h2>
-            
+
             <form onSubmit={handleUpload} className="space-y-6">
               <div className="space-y-4">
                 <div className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-xl bg-muted/30 group hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden">
                   {newItem.image ? (
                     <>
-                      <img 
-                        src={URL.createObjectURL(newItem.image)} 
-                        className="w-full h-full object-contain" 
-                        alt="Preview" 
+                      <img
+                        src={URL.createObjectURL(newItem.image)}
+                        className="w-full h-full object-contain"
+                        alt="Preview"
                       />
-                      <button 
+                      <button
                         type="button"
-                        onClick={() => setNewItem({...newItem, image: null})}
+                        onClick={() => setNewItem({ ...newItem, image: null })}
                         className="absolute top-2 right-2 p-1.5 rounded-full bg-background/50 hover:bg-background backdrop-blur-md"
                       >
                         <X size={14} />
@@ -282,11 +396,11 @@ export const ClosetPage = () => {
                       <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
                     </div>
                   )}
-                  <input 
-                    type="file" 
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                     accept="image/*"
-                    onChange={(e) => setNewItem({...newItem, image: e.target.files?.[0] || null})}
+                    onChange={(e) => setNewItem({ ...newItem, image: e.target.files?.[0] || null })}
                     required
                   />
                 </div>
@@ -294,19 +408,19 @@ export const ClosetPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Name</label>
-                    <Input 
+                    <Input
                       placeholder="e.g. Black Hoodie"
                       value={newItem.name}
-                      onChange={(e) => setNewItem({...newItem, name: e.target.value})}
+                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Category</label>
-                    <select 
+                    <select
                       className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={newItem.category}
-                      onChange={(e) => setNewItem({...newItem, category: e.target.value})}
+                      onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
                     >
                       {CATEGORIES.map(cat => <option key={cat} value={cat} className="bg-card">{cat}</option>)}
                     </select>
@@ -316,27 +430,27 @@ export const ClosetPage = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Price ($)</label>
-                    <Input 
+                    <Input
                       type="number"
                       placeholder="0.00"
                       value={newItem.price}
-                      onChange={(e) => setNewItem({...newItem, price: e.target.value})}
+                      onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Brand</label>
-                    <Input 
+                    <Input
                       placeholder="e.g. Nike"
                       value={newItem.brand}
-                      onChange={(e) => setNewItem({...newItem, brand: e.target.value})}
+                      onChange={(e) => setNewItem({ ...newItem, brand: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Material</label>
-                    <Input 
+                    <Input
                       placeholder="e.g. Cotton"
                       value={newItem.material}
-                      onChange={(e) => setNewItem({...newItem, material: e.target.value})}
+                      onChange={(e) => setNewItem({ ...newItem, material: e.target.value })}
                     />
                   </div>
                 </div>
@@ -349,45 +463,45 @@ export const ClosetPage = () => {
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Create a studio-clean look</p>
                     </div>
                   </div>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="w-5 h-5 accent-primary"
                     checked={newItem.removeBackground}
-                    onChange={(e) => setNewItem({...newItem, removeBackground: e.target.checked})}
+                    onChange={(e) => setNewItem({ ...newItem, removeBackground: e.target.checked })}
                   />
                 </div>
 
                 <div className="flex items-center gap-2 pt-2">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     id="wishlist"
                     className="w-4 h-4 accent-primary"
                     checked={newItem.is_wishlist}
-                    onChange={(e) => setNewItem({...newItem, is_wishlist: e.target.checked})}
+                    onChange={(e) => setNewItem({ ...newItem, is_wishlist: e.target.checked })}
                   />
                   <label htmlFor="wishlist" className="text-sm font-medium cursor-pointer">Mark as Wishlist Item</label>
                 </div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   className="flex-1"
                   onClick={() => setIsUploadModalOpen(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  className="flex-1" 
+                <Button
+                  type="submit"
+                  className="flex-1"
                   disabled={uploading || !newItem.image}
                 >
                   {uploading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Add to Closet'}
                 </Button>
               </div>
             </form>
-            
+
             {uploading && newItem.removeBackground && (
               <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex flex-col items-center justify-center rounded-2xl z-10 animate-in fade-in duration-300">
                 <div className="w-16 h-16 relative mb-4">
@@ -407,14 +521,14 @@ export const ClosetPage = () => {
 };
 
 const Shirt = ({ size }: { size: number }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
     strokeLinejoin="round"
   >
     <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />

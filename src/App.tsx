@@ -7,6 +7,7 @@ import { ClosetPage } from './pages/ClosetPage';
 import { SuggestionsPage } from './pages/SuggestionsPage';
 import { OutfitsPage } from './pages/OutfitsPage';
 import { PlannerPage } from './pages/PlannerPage';
+import { CanvasPage } from './pages/CanvasPage';
 import { Layout } from './components/Layout';
 import { Toaster } from 'react-hot-toast';
 import { Sparkles, Shirt } from 'lucide-react';
@@ -131,7 +132,7 @@ const Dashboard = () => {
         ].map((stat, i) => (
           <div 
             key={i}
-            className="p-5 md:p-8 rounded-2xl bg-card border border-white/5 transition-all duration-300 group relative overflow-hidden"
+            className="p-5 md:p-8 rounded-[1.25rem] bg-card border border-white/5 transition-all duration-300 group relative overflow-hidden"
           >
             <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3 md:mb-4">{stat.label}</h3>
             <p className="text-lg md:text-2xl font-bold tracking-tight mb-0.5 md:mb-1">{stat.value}</p>
@@ -141,7 +142,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="p-10 rounded-[2.5rem] bg-card border border-white/5 relative overflow-hidden group">
+        <div className="p-10 rounded-[1.25rem] bg-card border border-white/5 relative overflow-hidden group">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <Sparkles className="text-primary" size={24} />
@@ -222,6 +223,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/closet" element={<ProtectedRoute><ClosetPage /></ProtectedRoute>} />
+          <Route path="/canvas" element={<ProtectedRoute><CanvasPage /></ProtectedRoute>} />
           <Route path="/suggestions" element={<ProtectedRoute><SuggestionsPage /></ProtectedRoute>} />
           <Route path="/outfits" element={<ProtectedRoute><OutfitsPage /></ProtectedRoute>} />
           <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
