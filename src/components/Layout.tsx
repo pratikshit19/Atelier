@@ -7,12 +7,9 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
-  Menu,
-  X,
   Calendar
 } from 'lucide-react';
 import { cn } from './ui';
-import { Button } from './ui';
 
 const SidebarItem = ({ to, icon: Icon, label, active }: { to: string; icon: any; label: string; active: boolean }) => (
   <Link

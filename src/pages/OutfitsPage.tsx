@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card } from '../components/ui';
-import { Layers, Trash2, Calendar, Loader2, Edit2, Check } from 'lucide-react';
+import { Button } from '../components/ui';
+import { Layers, Trash2, Loader2, Edit2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface OutfitWithItems {
