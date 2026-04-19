@@ -2,14 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, Input, cn } from '../components/ui';
-import { 
-  Plus, 
-  Trash2, 
-  Save, 
-  Maximize2, 
+import { Button, Input, cn } from '../components/ui';
+import {
+  Plus,
+  Trash2,
+  Save,
+  Maximize2,
   RotateCcw,
-  Layers,
   Search,
   ChevronRight,
   Palette,
@@ -37,7 +36,6 @@ export const CanvasPage = () => {
   const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]); // Closet items
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [outfitName, setOutfitName] = useState('');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -60,7 +58,7 @@ export const CanvasPage = () => {
     } catch (error: any) {
       toast.error(error.message);
     } finally {
-      setLoading(false);
+      // Data fetch complete
     }
   };
 
@@ -82,14 +80,14 @@ export const CanvasPage = () => {
   const smartCrop = async (imageBlob: Blob, category: string): Promise<Blob> => {
     const img = new Image();
     const url = URL.createObjectURL(imageBlob);
-    
+
     return new Promise((resolve, reject) => {
       img.onload = async () => {
         try {
           const model = modelRef.current || await cocoSsd.load();
           const predictions = await model.detect(img);
           const person = predictions.find(p => p.class === 'person');
-          
+
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error("Could not get canvas context");
@@ -99,9 +97,9 @@ export const CanvasPage = () => {
           if (person) {
             const [px, py, pw, ph] = person.bbox;
             if (category === 'Tops' || category === 'Outerwear') {
-              sx = px + (pw * 0.1); sy = py + (ph * 0.15); sw = pw * 0.8; sh = ph * 0.55;       
+              sx = px + (pw * 0.1); sy = py + (ph * 0.15); sw = pw * 0.8; sh = ph * 0.55;
             } else if (category === 'Bottoms') {
-              sx = px + (pw * 0.05); sy = py + (ph * 0.4); sw = pw * 0.9; sh = ph * 0.6;        
+              sx = px + (pw * 0.05); sy = py + (ph * 0.4); sw = pw * 0.9; sh = ph * 0.6;
             } else {
               sx = px; sy = py; sw = pw; sh = ph;
             }
@@ -142,12 +140,12 @@ export const CanvasPage = () => {
   const addToCanvas = async (item: any) => {
     setProcessing(item.id);
     toast.loading('AI Extracting...', { id: 'canvas-ai' });
-    
+
     try {
       // Fetch the image
       const response = await fetch(item.image_url);
       const blob = await response.blob();
-      
+
       // Process with AI
       const noBgBlob = await removeBackground(blob);
       const finalBlob = await smartCrop(noBgBlob, item.category);
@@ -244,10 +242,10 @@ export const CanvasPage = () => {
       {/* Studio Canvas */}
       <div className="flex-1 relative bg-[#09090b] rounded-[1.25rem] border border-white/5 overflow-hidden shadow-2xl group order-2 lg:order-1">
         {/* Grid Background */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-             style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}
         />
-        
+
         <div className="absolute top-4 left-4 lg:top-8 lg:left-8 z-10">
           <div className="flex items-center gap-3 mb-1 lg:mb-2">
             <Palette className="text-primary w-5 h-5 lg:w-6 lg:h-6" />
@@ -259,7 +257,7 @@ export const CanvasPage = () => {
         {/* Action Bar */}
         <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-20 flex items-center gap-2 lg:gap-4">
           <div className="flex items-center gap-1 lg:gap-2 bg-black/60 backdrop-blur-xl p-1 lg:p-1.5 rounded-2xl border border-white/5 shadow-2xl">
-            <Input 
+            <Input
               placeholder="Name..."
               value={outfitName}
               onChange={(e) => setOutfitName(e.target.value)}
@@ -270,9 +268,9 @@ export const CanvasPage = () => {
               <span className="hidden lg:inline">Save Outfit</span>
             </Button>
           </div>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             onClick={() => setCanvasItems([])}
             className="h-8 w-8 lg:h-10 lg:w-10 p-0 rounded-xl bg-black/60 backdrop-blur-xl border border-white/5 text-muted-foreground"
           >
@@ -303,9 +301,9 @@ export const CanvasPage = () => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: item.scale, opacity: 1, rotate: item.rotation }}
                 exit={{ scale: 0.8, opacity: 0 }}
-                style={{ 
-                  position: 'absolute', 
-                  left: item.x, 
+                style={{
+                  position: 'absolute',
+                  left: item.x,
                   top: item.y,
                   zIndex: item.zIndex,
                   cursor: 'move'
@@ -313,28 +311,28 @@ export const CanvasPage = () => {
                 className="group/item"
               >
                 <div className="relative p-4">
-                  <img 
-                    src={item.image_url} 
-                    alt="" 
-                    className="w-48 h-auto pointer-events-none drop-shadow-2xl" 
-                    draggable="false" 
+                  <img
+                    src={item.image_url}
+                    alt=""
+                    className="w-48 h-auto pointer-events-none drop-shadow-2xl"
+                    draggable="false"
                   />
-                  
+
                   {/* Item Controls */}
                   <div className="absolute -top-2 -right-2 flex flex-col gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                    <button 
+                    <button
                       onClick={() => removeItem(item.id)}
                       className="p-2 rounded-full bg-destructive text-white shadow-lg hover:scale-110 transition-transform"
                     >
                       <Trash2 size={14} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => updateItem(item.id, { scale: item.scale + 0.1 })}
                       className="p-2 rounded-full bg-white text-black shadow-lg hover:scale-110 transition-transform"
                     >
                       <Maximize2 size={14} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => updateItem(item.id, { rotation: item.rotation + 15 })}
                       className="p-2 rounded-full bg-white text-black shadow-lg hover:scale-110 transition-transform"
                     >
@@ -366,7 +364,7 @@ export const CanvasPage = () => {
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Add to Studio</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input 
+            <input
               placeholder="Search closet..."
               className="w-full pl-10 pr-4 h-10 bg-black/20 border border-white/5 rounded-xl text-xs outline-none focus:border-primary transition-colors"
               value={search}
@@ -395,17 +393,30 @@ export const CanvasPage = () => {
           {filteredItems.map(item => (
             <button
               key={item.id}
+              disabled={!!processing}
               onClick={() => addToCanvas(item)}
-              className="w-full flex items-center gap-4 p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/30 transition-all group text-left"
+              className={cn(
+                "w-full flex items-center gap-4 p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/30 transition-all group text-left relative overflow-hidden",
+                processing === item.id && "opacity-50"
+              )}
             >
-              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-lg">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-lg relative">
                 <img src={item.image_url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                {processing === item.id && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                )}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="font-bold text-xs truncate">{item.name}</p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{item.category}</p>
               </div>
-              <ChevronRight size={14} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-1" />
+              {processing === item.id ? (
+                <Loader2 size={14} className="animate-spin text-primary" />
+              ) : (
+                <ChevronRight size={14} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-1" />
+              )}
             </button>
           ))}
         </div>
@@ -415,14 +426,14 @@ export const CanvasPage = () => {
       <AnimatePresence>
         {isClosetOpen && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsClosetOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
             />
-            <motion.div 
+            <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
