@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# 🧥 Atelie
+### *Your Private Digital Wardrobe Studio*
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Atelie is a high-end, AI-powered wardrobe management platform designed for the modern fashion enthusiast. It transforms your physical closet into a digital experience, helping you organize, discover, and style your clothing with precision and aesthetic elegance.
 
-Currently, two official plugins are available:
+![Atelie UI](public/screen.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Key Features
 
-## React Compiler
+- **📂 Digital Closet**: Catalog your entire wardrobe with high-quality images and detailed metadata.
+- **🪄 Smart Combos**: AI-driven outfit recommendations that pair your items into stunning looks.
+- **💾 Saved Outfits**: Archive your favorite combinations for different occasions (Date Night, Professional, Casual).
+- **📊 Wardrobe Analytics**: Track your closet statistics and most-used items directly from the dashboard.
+- **📱 Hybrid Layout**: A premium floating sidebar for desktop and an ergonomic bottom navigation bar for mobile.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🎨 Design Philosophy
 
-## Expanding the ESLint configuration
+Atelie follows a **Neutral Dark (Graphite)** aesthetic, inspired by high-end fintech and pro-productivity tools.
+- **Deep Palette**: Using `#09090b` (Background) and `#111114` (Cards) for a sophisticated, low-distraction environment.
+- **Fintrack Aesthetic**: Subtle borders, soft `2xl` rounding, and consistent primary blue accents (`#5865f2`).
+- **Precision Typography**: Clean, modern sans-serif hierarchy for maximum readability.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with modern CSS variables.
+- **Backend/Auth**: [Supabase](https://supabase.com/) (PostgreSQL + RLS Policies)
+- **Storage**: Supabase Buckets for high-performance image hosting.
+- **Icons**: [Lucide React](https://lucide.dev/) for crisp, minimalist iconography.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
+- Node.js (v18+)
+- A Supabase account and project.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/pratikshit19/Atelier.git
+   cd Atelier
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   Create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 📜 Database Schema
+
+The project uses a clean relational schema in PostgreSQL:
+- `items`: Individual clothing pieces with category and image links.
+- `outfits`: Collections of items representing a complete look.
+- `outfit_items`: Junction table for many-to-many relationships between items and outfits.
+
+---
+
+*Built with passion for fashion and technology. © 2026 Atelie Studio.*
