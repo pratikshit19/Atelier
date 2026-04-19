@@ -83,6 +83,24 @@ export const SuggestionsPage = () => {
     }
   };
 
+  const logWear = async (outfit: Outfit) => {
+    if (!user) return;
+    try {
+      const itemsToLog = [outfit.top.id, outfit.bottom.id, outfit.shoes.id].map(id => ({
+        user_id: user.id,
+        item_id: id,
+        worn_at: new Date().toISOString()
+      }));
+
+      const { error } = await supabase.from('wear_logs').insert(itemsToLog);
+      if (error) throw error;
+
+      toast.success('Wear logged! Your analytics have been updated.');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   const saveOutfit = async (outfit: Outfit) => {
     if (!user) return;
     try {
@@ -154,16 +172,25 @@ export const SuggestionsPage = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {combinations.map((outfit, idx) => (
-            <div key={idx} className="p-8 rounded-2xl bg-secondary/30 border border-white/5 space-y-6 hover:border-primary/30 transition-all duration-300">
+            <div key={idx} className="p-8 rounded-2xl bg-card border border-white/5 space-y-6 hover:border-primary/30 transition-all duration-300">
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-primary">Variation {idx + 1}</span>
-                <button 
-                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2"
-                  onClick={() => saveOutfit(outfit)}
-                >
-                  <Heart size={12} />
-                  Archive Look
-                </button>
+                <div className="flex items-center gap-6">
+                  <button 
+                    className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-colors inline-flex items-center gap-2"
+                    onClick={() => logWear(outfit)}
+                  >
+                    <RefreshCw size={12} />
+                    Wear Today
+                  </button>
+                  <button 
+                    className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2"
+                    onClick={() => saveOutfit(outfit)}
+                  >
+                    <Heart size={12} />
+                    Archive Look
+                  </button>
+                </div>
               </div>
 
               <div className="flex -space-x-20 hover:-space-x-10 transition-all duration-700 py-10 justify-center">

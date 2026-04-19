@@ -9,7 +9,8 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import { cn } from './ui';
 import { Button } from './ui';
@@ -46,6 +47,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { to: '/closet', icon: Shirt, label: 'Your Closet' },
     { to: '/suggestions', icon: Sparkles, label: 'Smart Combos' },
     { to: '/outfits', icon: Layers, label: 'Saved Outfits' },
+    { to: '/planner', icon: Calendar, label: 'Planner' },
   ];
 
   return (
@@ -96,26 +98,24 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* Mobile Bottom Navigation (Fintrack Style) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-card/80 backdrop-blur-2xl border-t border-white/[0.05] flex items-center justify-around px-4 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 bg-card/60 backdrop-blur-3xl border border-white/[0.05] rounded-[2rem] flex items-center justify-around px-4 z-50 shadow-2xl">
         {menuItems.map((item) => (
           <Link
             key={item.to}
             to={item.to}
             className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-300",
-              pathname === item.to ? "text-primary" : "text-muted-foreground opacity-60"
+              "p-3 rounded-2xl transition-all duration-300",
+              pathname === item.to ? "bg-primary/20 text-primary" : "text-muted-foreground opacity-60"
             )}
           >
-            <item.icon size={22} className={cn(pathname === item.to ? "scale-110" : "")} />
-            <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+            <item.icon size={24} />
           </Link>
         ))}
         <button
           onClick={handleSignOut}
-          className="flex flex-col items-center gap-1 text-muted-foreground opacity-60"
+          className="p-3 rounded-2xl text-muted-foreground opacity-60 hover:text-white"
         >
-          <LogOut size={22} />
-          <span className="text-[10px] font-bold tracking-tight">Exit</span>
+          <LogOut size={24} />
         </button>
       </nav>
 

@@ -9,7 +9,8 @@ import {
   Image as ImageIcon, 
   Loader2, 
   Trash2,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -20,6 +21,11 @@ interface ClosetItem {
   color: string;
   image_url: string;
   occasion: string[];
+  price: number;
+  brand: string;
+  material: string;
+  is_wishlist: boolean;
+  purchase_date: string;
 }
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Outerwear', 'Shoes', 'Accessories'];
@@ -38,6 +44,11 @@ export const ClosetPage = () => {
     name: '',
     category: 'Tops',
     color: '',
+    price: '',
+    brand: '',
+    material: '',
+    is_wishlist: false,
+    removeBackground: false,
     image: null as File | null
   });
 
@@ -95,6 +106,10 @@ export const ClosetPage = () => {
           name: newItem.name,
           category: newItem.category,
           color: newItem.color,
+          price: parseFloat(newItem.price) || 0,
+          brand: newItem.brand,
+          material: newItem.material,
+          is_wishlist: newItem.is_wishlist,
           image_url: publicUrl,
           occasion: []
         }]);
@@ -103,7 +118,7 @@ export const ClosetPage = () => {
 
       toast.success('Item added to closet!');
       setIsUploadModalOpen(false);
-      setNewItem({ name: '', category: 'Tops', color: '', image: null });
+      setNewItem({ name: '', category: 'Tops', color: '', price: '', brand: '', material: '', is_wishlist: false, removeBackground: false, image: null });
       fetchItems();
     } catch (error: any) {
       toast.error(error.message);
@@ -198,15 +213,20 @@ export const ClosetPage = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {filteredItems.map(item => (
             <div key={item.id} className="group relative">
-              <div className="aspect-[3/4] rounded-[2rem] overflow-hidden bg-secondary/30 border border-white/5 relative shadow-xl">
+              <div className="aspect-square rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-card border border-white/5 relative shadow-xl">
                 <img 
                   src={item.image_url} 
                   alt={item.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                 />
+                {item.is_wishlist && (
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
+                    Wishlist
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button 
                     onClick={() => deleteItem(item.id, item.image_url)}
@@ -294,13 +314,59 @@ export const ClosetPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Color (Optional)</label>
-                  <Input 
-                    placeholder="e.g. Jet Black"
-                    value={newItem.color}
-                    onChange={(e) => setNewItem({...newItem, color: e.target.value})}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Price ($)</label>
+                    <Input 
+                      type="number"
+                      placeholder="0.00"
+                      value={newItem.price}
+                      onChange={(e) => setNewItem({...newItem, price: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Brand</label>
+                    <Input 
+                      placeholder="e.g. Nike"
+                      value={newItem.brand}
+                      onChange={(e) => setNewItem({...newItem, brand: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Material</label>
+                    <Input 
+                      placeholder="e.g. Cotton"
+                      value={newItem.material}
+                      onChange={(e) => setNewItem({...newItem, material: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-3">
+                    <Sparkles size={18} className="text-primary" />
+                    <div>
+                      <p className="text-sm font-bold">AI Background Removal</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Create a studio-clean look</p>
+                    </div>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    className="w-5 h-5 accent-primary"
+                    checked={newItem.removeBackground}
+                    onChange={(e) => setNewItem({...newItem, removeBackground: e.target.checked})}
                   />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="wishlist"
+                    className="w-4 h-4 accent-primary"
+                    checked={newItem.is_wishlist}
+                    onChange={(e) => setNewItem({...newItem, is_wishlist: e.target.checked})}
+                  />
+                  <label htmlFor="wishlist" className="text-sm font-medium cursor-pointer">Mark as Wishlist Item</label>
                 </div>
               </div>
 
@@ -322,6 +388,18 @@ export const ClosetPage = () => {
                 </Button>
               </div>
             </form>
+            
+            {uploading && newItem.removeBackground && (
+              <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex flex-col items-center justify-center rounded-2xl z-10 animate-in fade-in duration-300">
+                <div className="w-16 h-16 relative mb-4">
+                  <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+                  <Sparkles className="absolute inset-0 m-auto text-primary animate-pulse" size={24} />
+                </div>
+                <h3 className="text-xl font-bold">AI Studio Processing</h3>
+                <p className="text-muted-foreground text-sm mt-2">Stripping background for a clean look...</p>
+              </div>
+            )}
           </Card>
         </div>
       )}

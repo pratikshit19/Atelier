@@ -3,6 +3,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT,
   avatar_url TEXT,
+  location TEXT, -- For weather integration
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -15,6 +16,11 @@ CREATE TABLE items (
   color TEXT,
   image_url TEXT,
   occasion TEXT[], -- e.g., ['formal', 'casual', 'workout']
+  price NUMERIC DEFAULT 0, -- For CPW
+  purchase_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  brand TEXT,
+  material TEXT,
+  is_wishlist BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -34,11 +40,21 @@ CREATE TABLE outfit_items (
   item_id UUID REFERENCES items ON DELETE CASCADE NOT NULL
 );
 
+-- Wear Logs (The CPW Engine)
+CREATE TABLE wear_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  item_id UUID REFERENCES items ON DELETE CASCADE NOT NULL,
+  outfit_id UUID REFERENCES outfits ON DELETE CASCADE,
+  worn_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Set up Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE outfits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE outfit_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wear_logs ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
@@ -67,5 +83,7 @@ CREATE POLICY "Users can delete their own outfit items" ON outfit_items FOR DELE
   EXISTS (SELECT 1 FROM outfits WHERE id = outfit_items.outfit_id AND user_id = auth.uid())
 );
 
--- Storage Buckets (Run these in Supabase Storage UI or via API)
--- bucket: clothing-items
+-- Wear Logs Policies
+CREATE POLICY "Users can view their own wear logs" ON wear_logs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own wear logs" ON wear_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own wear logs" ON wear_logs FOR DELETE USING (auth.uid() = user_id);
