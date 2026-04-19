@@ -30,15 +30,15 @@ export const LoginPage = () => {
       <div className="w-full max-w-sm space-y-10">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-primary/10">
-            <img src="/screen.png" alt="Atelie Logo" className="w-full h-full object-cover" />
+            <img src="/screen.png" alt="Atelier Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Atelie</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Atelier</h1>
         </div>
 
         <div className="p-8 rounded-2xl bg-card border border-white/[0.05] shadow-2xl space-y-8">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Welcome back</h2>
-            <p className="text-sm text-muted-foreground">Sign in to your Atelie account</p>
+            <p className="text-sm text-muted-foreground">Sign in to your Atelier account</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -125,9 +125,9 @@ export const SignupPage = () => {
       <div className="w-full max-w-sm space-y-10">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-primary/10">
-            <img src="/screen.png" alt="Atelie Logo" className="w-full h-full object-cover" />
+            <img src="/screen.png" alt="Atelier Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Atelie</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Atelier</h1>
         </div>
 
         <div className="p-8 rounded-2xl bg-card border border-white/[0.05] shadow-2xl space-y-8">

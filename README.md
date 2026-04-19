@@ -1,9 +1,9 @@
-# 🧥 Atelie
+# 🧥 Atelier
 ### *Your Private Digital Wardrobe Studio*
 
-Atelie is a high-end, AI-powered wardrobe management platform designed for the modern fashion enthusiast. It transforms your physical closet into a digital experience, helping you organize, discover, and style your clothing with precision and aesthetic elegance.
+Atelier is a high-end, AI-powered wardrobe management platform designed for the modern fashion enthusiast. It transforms your physical closet into a digital experience, helping you organize, discover, and style your clothing with precision and aesthetic elegance.
 
-![Atelie UI](public/screen.png)
+![Atelier UI](public/screen.png)
 
 ## ✨ Key Features
 
@@ -15,7 +15,7 @@ Atelie is a high-end, AI-powered wardrobe management platform designed for the m
 
 ## 🎨 Design Philosophy
 
-Atelie follows a **Neutral Dark (Graphite)** aesthetic, inspired by high-end fintech and pro-productivity tools.
+Atelier follows a **Neutral Dark (Graphite)** aesthetic, inspired by high-end fintech and pro-productivity tools.
 - **Deep Palette**: Using `#09090b` (Background) and `#111114` (Cards) for a sophisticated, low-distraction environment.
 - **Fintrack Aesthetic**: Subtle borders, soft `2xl` rounding, and consistent primary blue accents (`#5865f2`).
 - **Precision Typography**: Clean, modern sans-serif hierarchy for maximum readability.
@@ -68,4 +68,4 @@ The project uses a clean relational schema in PostgreSQL:
 
 ---
 
-*Built with passion for fashion and technology. © 2026 Atelie Studio.*
+*Built with passion for fashion and technology. © 2026 Atelier Studio.*

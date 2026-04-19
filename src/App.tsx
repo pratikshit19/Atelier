@@ -201,7 +201,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-primary font-bold text-3xl tracking-tighter">ATELIE</div>
+        <div className="animate-pulse text-primary font-bold text-3xl tracking-tighter">ATELIER</div>
       </div>
     );
   }
